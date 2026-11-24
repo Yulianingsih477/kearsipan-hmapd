@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PT HMAPD - Portal Kearsipan Perusahaan</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- LOGIN CONTAINER -->
+    <div id="authContainer" class="container vh-100 d-flex justify-content-center align-items-center">
+        <div class="card shadow-lg p-4 border-0 rounded-4" style="width: 420px;">
+            <div class="text-center mb-4">
+                <div class="bg-gradient-hmapd text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                    <i class="fa-solid fa-building-shield fa-2x"></i>
+                </div>
+                <h3 class="fw-bold text-dark">PT HMAPD</h3>
+                <p class="text-muted small">Portal Kearsipan Perusahaan - Yulia Ningsih</p>
+            </div>
+            <form id="loginForm" onsubmit="return handleLogin(event)">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Pilih Hak Akses</label>
+                    <select class="form-select" id="roleSelect" onchange="togglePasswordInput()" required>
+                        <option value="admin">Admin</option>
+                        <option value="pimpinan">Pimpinan</option>
+                        <option value="tamu">Tamu / Viewer</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="passwordGroup">
+                    <label class="form-label fw-semibold" id="passwordLabel">Password</label>
+                    <input type="password" class="form-control" id="accessPassword" placeholder="Masukkan password...">
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold bg-gradient-hmapd border-0">Masuk ke Portal</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="appContainer" class="container-fluid d-none">
+        <header class="navbar-sticky">
+        <div class="navbar-container">
+            <div class="logo-group">
+                <button class="btn btn-sm btn-outline-secondary d-md-none me-1" type="button" onclick="toggleMobileSidebar()" aria-label="Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="logo-box">K</div>
+                <span class="company-name">PT HMAPD</span><span id="currentTitle" class="page-header-title">Beranda Utama</span>
+            </div>
+            <div class="nav-right">
+                <nav class="nav-links">
+                    <a href="#beranda-top" class="active-nav" onclick="navigateHomeSection('beranda-top'); return false;">Beranda</a>
+                    <a href="#profil-section" onclick="navigateHomeSection('profil-section'); return false;">Profil</a>
+                </nav>
+
+                <!-- Tombol Ganti Mode (Siang / Malam) -->
+                <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ubah Mode Tampilan">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+        <div class="row">
+            <!-- SIDEBAR -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse p-3">
+                <div class="text-center mb-4 mt-2">
+                    <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-building me-2"></i>PT HMAPD</h5>
+                    <small class="text-muted" id="userRoleBadge">Role: Admin</small>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#" onclick="switchTab('beranda', this); return false;"><i class="fa-solid fa-house me-2"></i> Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('suratMasuk', this); return false;"><i class="fa-solid fa-inbox me-2"></i> Surat Masuk</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('suratKeluar', this); return false;"><i class="fa-solid fa-paper-plane me-2"></i> Surat Keluar</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('lembarDisposisi', this); return false;"><i class="fa-solid fa-file-lines me-2"></i> Lembar Disposisi</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('klasifikasi', this); return false;"><i class="fa-solid fa-tags me-2"></i> Kode Klasifikasi</a></li>
+                    <li class="nav-item admin-only"><a class="nav-link" href="#" onclick="switchTab('pengaturanKontak', this); return false;"><i class="fa-solid fa-address-book me-2"></i> Pengaturan Kontak</a></li>
+                    <li class="nav-item mt-4"><a class="nav-link text-danger bg-danger-subtle" href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket me-2"></i> Keluar</a></li>
+                </ul>
+            </nav>
+
+            <!-- MAIN CONTENT -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 navbar-top px-3 rounded-3 shadow-sm">
+                    
+                    <div class="user-info d-flex align-items-center">
+                        <span class="fw-semibold me-2 text-secondary">Yulia Ningsih (PT HMAPD)</span>
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 35px; height: 35px;">YH</div>
+                    </div>
+                </div>
+
+                <!-- TAB 1: BERANDA -->
+                <div id="tab-beranda" class="tab-content-section">
+                    <!-- NAVBAR TETAP DI ATAS (STICKY) -->
+
+
+
+    <div class="page-wrapper">
+
+        <!-- ================= KONTEN UTAMA (BERANDA & PROFIL DALAM 1 HALAMAN) ================= -->
+        
+        <!-- BAGIAN BERANDA -->
+        <div class="main-card" id="beranda-top">
+            <main class="hero-section">
+                <div class="hero-text">
+                    <span class="badge-onboarding">PT HMAPD OFFICIAL PORTAL</span>
+                    <h1>Solusi Terdepan Penjualan Barang Digital.</h1>
+                    <p>Kami bergerak di bidang perdagangan dan distribusi produk digital berkualitas tinggi untuk memenuhi kebutuhan teknologi modern masyarakat luas.</p>
+                </div>
+                <div class="hero-img">
+                    <div class="building-image"></div>
+                </div>
+            </main>
+
+            
+        </div> <!-- Penutup kartu Beranda -->
+
+        <!-- JEMBATAN JARAK ANTAR KARTU -->
+        <div style="height: 30px;"></div>
+
+        <!-- BAGIAN PROFIL & INFORMASI PERUSAHAAN -->
+        <div class="main-card" id="profil-section">
+            <div class="company-info-section">
+                <h2>Profil & Informasi Lengkap Perusahaan</h2>
+                <p>PT HMAPD adalah perusahaan inovatif yang berfokus penuh pada sektor <strong>penjualan barang digital</strong> (seperti lisensi perangkat lunak, produk digital kreatif, *e-voucher*, serta solusi sistem berbasis elektronik). Kami berkomitmen untuk menghadirkan pengalaman belanja produk digital yang aman, mudah, dan terpercaya bagi seluruh konsumen dan mitra bisnis.</p>
+                
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fa-solid fa-bullseye fa-2x"></i>
+                        <h3>Visi Utama</h3>
+                        <p>Menjadi pusat distribusi dan platform penjualan barang digital terkemuka yang mengedepankan inovasi teknologi di Indonesia.</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fa-solid fa-star fa-2x"></i>
+                        <h3>Misi Perusahaan</h3>
+                        <p>Menyediakan ragam produk digital berkualitas tinggi, memberikan pelayanan transaksi yang instan, serta membangun kemitraan digital yang strategis.</p>
+                    </div>
+                </div>
+
+             <!-- STRUKTUR ORGANISASI PERUSAHAAN (CARD GRID) -->
+                <div class="structure-block" id="struktur-section">
+                    <div class="org-header-text">
+                        <h3>Struktur Organisasi</h3>
+                        <p class="structure-desc">Tim profesional dan berdedikasi tinggi di balik keberhasilan HMAPD</p>
+                    </div>
+                    
+                    <div class="org-card-grid">
+                        <!-- Kartu 1: Syauqi -->
+                        <div class="org-profile-card">
+                            <div class="org-img-box">
+                                <img src="https://i.imgur.com/sBDPRZe.jpeg" alt="Muhammad Syauqi Aqil Al'Fayyad">
+                            </div>
+                            <div class="org-profile-info">
+                                <h4>MUHAMMAD SYAUQI AQIL AL'FAYYAD</h4>
+                                <span class="org-role">Direktur Utama</span>
+                                <p>Memimpin strategi korporat dan arah ekosistem bisnis digital perusahaan.</p>
+                            </div>
+                        </div>
+
+                        <!-- Kartu 2: Putri -->
+                        <div class="org-profile-card">
+                            <div class="org-img-box">
+                                <img src="https://imgur.com/w9b64wE.jpeg" alt="Putri Zalsabila">
+                            </div>
+                            <div class="org-profile-info">
+                                <h4>PUTRI ZALSABILA</h4>
+                                <span class="org-role">Sekretaris Perusahaan</span>
+                                <p>Mengelola tata kelola administrasi, komunikasi eksekutif, dan legalitas.</p>
+                            </div>
+                        </div>
+
+                        <!-- Kartu 3: Yulia -->
+                        <div class="org-profile-card">
+                            <div class="org-img-box">
+                                <img src="https://imgur.com/uViJEL5.jpeg" alt="Yulia Ningsih">
+                            </div>
+                            <div class="org-profile-info">
+                                <h4>YULIA NINGSIH</h4>
+                                <span class="org-role">Manajer Pemasaran</span>
+                                <p>Mengembangkan strategi pemasaran digital dan hubungan kemitraan.</p>
+                            </div>
+                        </div>
+
+                        <!-- Kartu 4: Natifa -->
+                        <div class="org-profile-card">
+                            <div class="org-img-box">
+                                <img src="https://imgur.com/HeJo7uc.jpeg" alt="Natifa Mazaya Nabila">
+                            </div>
+                            <div class="org-profile-info">
+                                <h4>NATIFA MAZAYA NABILA</h4>
+                                <span class="org-role">Manajer Keuangan</span>
+                                <p>Mengatur perencanaan anggaran, analisis finansial, dan efisiensi investasi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+        <!-- FOOTER DENGAN NAVIGASI CEPAT -->
+        <footer class="footer">
+            <div class="footer-left">
+                <p>&copy; 2026 PT HMAPD. Seluruh Hak Cipta Dilindungi.</p>
+            </div>
+            <div class="footer-quick-nav">
+                <h4>Navigasi Cepat</h4>
+                <ul>
+                    <li><a href="#beranda-top">Beranda Utama</a></li>
+                    <li><a href="#profil-section">Profil & Informasi</a></li>
+                    
+                </ul>
+            </div>
+            <div class="footer-links-bottom">
+                <a href="#">Kebijakan Privasi</a>
+                <a href="#">Ketentuan Layanan</a>
+                <a href="#">Bantuan</a>
+            </div>
+        </footer>
+    </div> <!-- Penutup company-info-section -->
+</div> <!-- Penutup kartu profil -->
+</div> <!-- Penutup page-wrapper Beranda -->
+</div> <!-- Penutup tab-beranda -->
+
+                <!-- TAB 2: SURAT MASUK -->
+                <div id="tab-suratMasuk" class="tab-content-section d-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Buku Agenda Surat Masuk</h5>
+                            <button class="btn btn-primary btn-sm bg-gradient-hmapd border-0 admin-only" onclick="bukaModalTambahMasuk()"><i class="fa-solid fa-plus me-1"></i> Input Surat Masuk</button>
+                        </div>
+                        <div class="mb-3 d-flex gap-2">
+                            <input type="text" id="searchMasuk" class="form-control" placeholder="Cari nomor surat, pengirim, perihal, atau isi ringkas..." onkeyup="filterSuratMasuk()">
+                            <button type="button" class="btn btn-outline-primary text-nowrap fw-semibold" onclick="bukaLaporanAgenda('masuk')"><i class="fa-solid fa-print me-1"></i> Laporan</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>No Agenda</th>
+                                        <th>Tgl Terima</th>
+                                        <th>No Surat</th>
+                                        <th>Tgl Surat</th>
+                                        <th>Dari</th>
+                                        <th>Perihal</th>
+                                        <th>Isi Ringkas</th>
+                                        <th>Kode Arsip</th>
+                                        <th>File</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodySuratMasuk"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: SURAT KELUAR -->
+                <div id="tab-suratKeluar" class="tab-content-section d-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Buku Agenda Surat Keluar</h5>
+                            <button class="btn btn-primary btn-sm bg-gradient-hmapd border-0 admin-only" onclick="bukaModalTambahKeluar()"><i class="fa-solid fa-plus me-1"></i> Input Surat Keluar</button>
+                        </div>
+                        <div class="mb-3 d-flex gap-2">
+                            <input type="text" id="searchKeluar" class="form-control" placeholder="Cari nomor surat, kepada, perihal, atau isi ringkas..." onkeyup="filterSuratKeluar()">
+                            <button type="button" class="btn btn-outline-primary text-nowrap fw-semibold" onclick="bukaLaporanAgenda('keluar')"><i class="fa-solid fa-print me-1"></i> Laporan</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>No Agenda</th>
+                                        <th>Tgl Kirim</th>
+                                        <th>No Surat</th>
+                                        <th>Tgl Surat</th>
+                                        <th>Kepada</th>
+                                        <th>Perihal</th>
+                                        <th>Isi Ringkas</th>
+                                        <th>Kode Arsip</th>
+                                        <th>File</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodySuratKeluar"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: LEMBAR DISPOSISI -->
+                <div id="tab-lembarDisposisi" class="tab-content-section d-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1">Daftar Lembar Disposisi</h5>
+                                <p class="text-muted small mb-0">Seluruh surat masuk dan lembar disposisi pimpinan.</p>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-12"><input type="search" id="searchDaftarDisposisi" class="form-control" placeholder="Cari nomor surat, asal surat, atau perihal..." oninput="filterDaftarDisposisi()"></div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>No.</th>
+                                        <th>Nomor Surat</th>
+                                        <th>Asal Surat</th>
+                                        <th>Perihal</th>
+                                        <th>Tanggal Masuk</th>
+                                        <th>Status Disposisi</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyDaftarDisposisi"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: KLASIFIKASI -->
+                <div id="tab-klasifikasi" class="tab-content-section d-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <h5 class="fw-bold mb-0">Daftar Kode Klasifikasi Buku Agenda</h5>
+                            <button type="button" class="btn btn-primary btn-sm admin-only" onclick="bukaModalTambahKlasifikasi()"><i class="fa-solid fa-plus me-1"></i> Tambah Klasifikasi</button>
+                        </div>
+                        <div class="mb-3">
+                            <input type="search" id="searchKlasifikasi" class="form-control" placeholder="Cari kode atau uraian klasifikasi..." oninput="filterKlasifikasi()">
+                        </div>
+                        <div class="table-responsive table-scroll-area">
+                            <table class="table table-custom align-middle classification-table">
+                                <thead><tr><th>Kode / Kelompok Klasifikasi (Kolom A)</th><th>Rincian Klasifikasi (Kolom B)</th><th class="classification-action-col">Aksi</th></tr></thead>
+                                <tbody id="tbodyKlasifikasi"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- TAB 6: PENGATURAN KONTAK & TUJUAN DISPOSISI (KHUSUS ADMIN) -->
+                <div id="tab-pengaturanKontak" class="tab-content-section d-none">
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                                <h5 class="fw-bold mb-1"><i class="fa-brands fa-whatsapp text-success me-2"></i>Kontak WhatsApp Admin</h5>
+                                <p class="text-muted small mb-3">Nomor ini otomatis menerima notifikasi WA saat Pimpinan selesai mendisposisikan surat.</p>
+                                <form id="formAdminContact" onsubmit="return simpanKontakAdmin(event)">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Nama Admin</label>
+                                        <input type="text" class="form-control" id="cfgAdminNama" placeholder="Contoh: Admin Kearsipan PT HMAPD" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Nomor WhatsApp Admin</label>
+                                        <input type="text" class="form-control" id="cfgAdminWa" placeholder="Contoh: 6281234567890 (tanpa + atau 0 di depan)" required>
+                                        <small class="text-muted">Gunakan kode negara 62 (contoh: 62812xxxxxxxx).</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary bg-gradient-hmapd border-0 w-100"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Kontak Admin</button>
+                                </form>
+
+                                <hr class="my-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold small">Status Database Cloud (Supabase)</span>
+                                    <span id="supabaseStatusBadge" class="badge bg-secondary">Mode Lokal</span>
+                                </div>
+                                <p class="text-muted small mb-2" id="supabaseStatusDesc">Isi URL &amp; Anon Key Supabase di bagian atas file <code>script.js</code> agar data sinkron otomatis antar perangkat.</p>
+                                <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="syncFromSupabase(true)"><i class="fa-solid fa-rotate me-1"></i> Muat Ulang Data dari Supabase</button>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-1">Daftar Tujuan Disposisi (Manajer / Bagian)</h5>
+                                        <p class="text-muted small mb-0">Otomatis muncul di dropdown "Diteruskan Kepada" pada lembar disposisi Pimpinan.</p>
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm bg-gradient-hmapd border-0" onclick="bukaModalTambahKontak()"><i class="fa-solid fa-plus me-1"></i> Tambah Manajer</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-custom align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Nama Bagian / Manajer</th>
+                                                <th>Nomor WhatsApp</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyKontakManajer"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL FORM SURAT MASUK -->
+    <div class="modal fade" id="formSuratMasukModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 p-3">
+                <div class="modal-header border-0">
+                    <h5 class="fw-bold text-primary" id="modalMasukTitle">Tambah Surat Masuk</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formInputMasuk" onsubmit="return simpanSuratMasuk(event)">
+                        <input type="hidden" id="editMasukId">
+                        <div class="mb-2"><label class="form-label small fw-semibold">Nomor Agenda</label><input type="number" class="form-control" id="inNoAgendaMasuk" min="1"></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Tanggal Terima</label><input type="date" class="form-control" id="inTglMasuk" required></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Tanggal Surat</label><input type="date" class="form-control" id="inTglSuratMasuk"></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Nomor Surat</label><input type="text" class="form-control" id="inNoMasuk"></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Pengirim</label><input type="text" class="form-control" id="inPengirim" required></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Perihal</label><input type="text" class="form-control" id="inPerihalMasuk" required></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Isi Ringkas</label><textarea class="form-control" id="inIsiMasuk" rows="2" required></textarea></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Lampiran</label><input type="text" class="form-control" id="inLampiranMasuk" placeholder="Contoh: 1 Berkas atau -"></div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Sifat Surat</label>
+                            <select class="form-select" id="inSifatMasuk">
+                                <option value="">Pilih Sifat Surat</option>
+                                <option value="P">P - Penting</option>
+                                <option value="B">B - Biasa</option>
+                                <option value="R">R - Rahasia</option>
+                            </select>
+                        </div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Kode Arsip</label><input type="text" class="form-control" id="inKodeArsipMasuk"></div>
+                        <div class="mb-3"><label class="form-label small fw-semibold">Upload File Surat</label><input type="file" class="form-control" id="inFileMasuk"></div>
+                        <button type="submit" class="btn btn-primary w-100 bg-gradient-hmapd border-0">Simpan Surat Masuk</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FORM SURAT KELUAR -->
+    <div class="modal fade" id="formSuratKeluarModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 p-3">
+                <div class="modal-header border-0">
+                    <h5 class="fw-bold text-primary" id="modalKeluarTitle">Tambah Surat Keluar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formInputKeluar" onsubmit="return simpanSuratKeluar(event)">
+                        <input type="hidden" id="editKeluarId">
+                        <div class="mb-2"><label class="form-label small fw-semibold">Nomor Agenda</label><input type="number" class="form-control" id="inNoAgendaKeluar" min="1"></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Tanggal Kirim</label><input type="date" class="form-control" id="inTglKirim" required></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Tanggal Surat</label><input type="date" class="form-control" id="inTglSuratKeluar"></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Nomor Surat</label><input type="text" class="form-control" id="inNoKeluar"></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Kepada (Tujuan)</label><input type="text" class="form-control" id="inKepada" required></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Perihal</label><input type="text" class="form-control" id="inPerihalKeluar" required></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Isi Ringkas</label><textarea class="form-control" id="inIsiKeluar" rows="2" required></textarea></div>
+                        <div class="mb-2"><label class="form-label small fw-semibold">Kode Arsip</label><input type="text" class="form-control" id="inKodeArsip" required></div>
+                        <div class="mb-3"><label class="form-label small fw-semibold">Upload File Surat</label><input type="file" class="form-control" id="inFileKeluar"></div>
+                        <button type="submit" class="btn btn-primary w-100 bg-gradient-hmapd border-0">Simpan Surat Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PREVIEW SURAT -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content rounded-4 p-3">
+                <div class="modal-header border-0">
+                    <h5 class="fw-bold text-primary"><i class="fa-solid fa-eye me-2"></i>Preview Dokumen Surat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="previewContent" class="p-4 border rounded bg-light"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LEMBAR DISPOSISI -->
+    <div class="modal fade" id="disposisiModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content rounded-4 p-3">
+                <div class="modal-header border-0">
+                    <h5 class="fw-bold text-primary"><i class="fa-solid fa-file-lines me-2"></i>Lembar Disposisi PT HMAPD</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- KERTAS LEMBAR DISPOSISI SESUAI FORMAT CETAK -->
+                    <div id="disposisiSheet" class="disposisi-sheet-formal bg-white text-dark">
+                        <div class="disp-formal-header">
+                            <div class="disp-formal-title">LEMBAR DISPOSISI</div>
+                            <div class="disp-pbr-wrap">
+                                <table class="disp-pbr-table">
+                                    <tr>
+                                        <td id="pbrCellP"><span class="pbr-letter" id="pbrMarkP">P</span></td>
+                                        <td id="pbrCellB"><span class="pbr-letter" id="pbrMarkB">B</span></td>
+                                        <td id="pbrCellR"><span class="pbr-letter" id="pbrMarkR">R</span></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <table class="disp-formal-table">
+                            <tr>
+                                <td class="w-50">
+                                    <div class="disp-label-top">Perihal:</div>
+                                    <div id="dspPerihal" class="disp-val-block">-</div>
+                                </td>
+                                <td class="w-50">
+                                    <div class="disp-label-top">Tanggal Penyelesaian:</div>
+                                    <div id="dspTglSelesaiText" class="disp-val-block">-</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div class="disp-meta-row"><span class="disp-meta-label">Tanggal Surat</span><span class="disp-meta-colon">:</span><span id="dspTglSurat">-</span></div>
+                                    <div class="disp-meta-row"><span class="disp-meta-label">Nomor Surat</span><span class="disp-meta-colon">:</span><span id="dspNoSurat">-</span></div>
+                                    <div class="disp-meta-row"><span class="disp-meta-label">Asal Surat</span><span class="disp-meta-colon">:</span><span id="dspPengirim">-</span></div>
+                                    <div class="disp-meta-row mb-0"><span class="disp-meta-label">Lampiran</span><span class="disp-meta-colon">:</span><span id="dspLampiran">-</span></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div class="fw-bold mb-1">Instruksi:</div>
+                                    <div id="dspInstruksiText" class="disp-instruksi-box">-</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div class="mb-1">Diteruskan:</div>
+                                    <ol class="disp-diteruskan-list" id="dspPenerimaList">
+                                        <li>........................................................................................</li>
+                                        <li>........................................................................................</li>
+                                        <li>........................................................................................</li>
+                                        <li>........................................................................................</li>
+                                    </ol>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="disp-formal-footer">
+                                    <span>P = Penting,</span>
+                                    <span>B = Biasa,</span>
+                                    <span>R = Rahasia</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- EDITOR IDENTITAS SURAT (KHUSUS ADMIN) -->
+                    <div class="disposisi-editor mt-4 p-3 bg-light rounded d-none" id="adminDisposisiEditorContainer">
+                        <h6 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Identitas Surat &amp; Sifat (Admin)</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label">Perihal</label><input type="text" class="form-control" id="admDspPerihalInput"></div>
+                            <div class="col-md-6">
+                                <label class="form-label">Sifat Surat (P / B / R)</label>
+                                <select class="form-select" id="admDspSifatInput">
+                                    <option value="">Pilih Sifat</option>
+                                    <option value="P">P - Penting</option>
+                                    <option value="B">B - Biasa</option>
+                                    <option value="R">R - Rahasia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4"><label class="form-label">Tanggal Surat</label><input type="date" class="form-control" id="admDspTglSuratInput"></div>
+                            <div class="col-md-4"><label class="form-label">Nomor Surat</label><input type="text" class="form-control" id="admDspNoSuratInput"></div>
+                            <div class="col-md-4"><label class="form-label">Asal Surat</label><input type="text" class="form-control" id="admDspPengirimInput"></div>
+                            <div class="col-md-12"><label class="form-label">Lampiran</label><input type="text" class="form-control" id="admDspLampiranInput" placeholder="-"></div>
+                        </div>
+                    </div>
+
+                    <!-- EDITOR DISPOSISI PIMPINAN (KHUSUS PIMPINAN) -->
+                    <div class="disposisi-editor mt-4 p-3 bg-light rounded d-none" id="disposisiEditorContainer">
+                        <h6 class="fw-bold mb-3" id="editorTitleLabel"><i class="fa-solid fa-user-tie me-1"></i> Pengisian Disposisi Pimpinan</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tanggal Penyelesaian</label>
+                                <input type="date" class="form-control" id="dspTglSelesai">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Status Disposisi</label>
+                                <select class="form-select" id="dspStatusDisposisi">
+                                    <option value="Dalam Proses">Dalam Proses</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="dspPenerima">Diteruskan Kepada (Maksimal 4 Bagian)</label>
+                                <select class="form-select" id="dspPenerima" multiple size="5" aria-describedby="dspPenerimaHelp">
+                                    <option value="Manajer Operasional">Manajer Operasional</option>
+                                    <option value="Manajer Keuangan">Manajer Keuangan</option>
+                                    <option value="Manajer SDM">Manajer SDM</option>
+                                    <option value="Manajer Administrasi">Manajer Administrasi</option>
+                                    <option value="Manajer Pemasaran">Manajer Pemasaran</option>
+                                    <option value="Manajer Produksi">Manajer Produksi</option>
+                                    <option value="Manajer Umum">Manajer Umum</option>
+                                    <option value="Manajer IT">Manajer IT</option>
+                                </select>
+                                <small id="dspPenerimaHelp" class="form-text text-muted">Tahan tombol Ctrl (Windows) atau Command (Mac) untuk memilih lebih dari satu manajer (maks. 4).</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Instruksi / Tindakan Lanjutan Pimpinan</label>
+                                <select class="form-select mb-2" id="dspInstruksiSelect" onchange="syncInstruksiDropdown()">
+                                    <option value="">-- Pilih Instruksi Cepat atau Ketik di Bawah --</option>
+                                    <option value="Segera Ditindaklanjuti">Segera Ditindaklanjuti</option>
+                                    <option value="Untuk diketahui">Untuk diketahui</option>
+                                    <option value="Mohon ditindaklanjuti sesuai ketentuan">Mohon ditindaklanjuti sesuai ketentuan</option>
+                                    <option value="Koordinasikan dengan bagian terkait">Koordinasikan dengan bagian terkait</option>
+                                    <option value="Lakukan pemeriksaan dan verifikasi">Lakukan pemeriksaan dan verifikasi</option>
+                                    <option value="Siapkan konsep surat balasan">Siapkan konsep surat balasan</option>
+                                    <option value="Segera diselesaikan dan laporkan hasilnya">Segera diselesaikan dan laporkan hasilnya</option>
+                                    <option value="Arsipkan setelah selesai">Arsipkan setelah selesai</option>
+                                </select>
+                                <textarea class="form-control" id="dspInstruksi" rows="2" placeholder="Tulis atau sesuaikan instruksi pimpinan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 flex-wrap">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-outline-primary" id="btnPrintDisposisi" onclick="printDisposisiSheet()"><i class="fa-solid fa-print me-1"></i> Cetak</button>
+                    <button type="button" class="btn btn-success" id="btnDownloadDisposisi" onclick="downloadDisposisiPDF()"><i class="fa-solid fa-download me-1"></i> Unduh PDF</button>
+                    <button type="button" class="btn btn-primary admin-only" id="btnSimpanIdentitasSurat" onclick="simpanIdentitasDisposisiAdmin()"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Identitas Surat</button>
+                    <button type="button" class="btn btn-primary pimpinan-only" id="btnSimpanDisposisi" onclick="simpanDisposisiData()"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Disposisi</button>
+                    <button type="button" class="btn btn-success pimpinan-only" id="btnKirimWaDisposisi" onclick="kirimWhatsAppDisposisi()"><i class="fa-brands fa-whatsapp me-1"></i> Kirim WhatsApp</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LAPORAN BUKU AGENDA (SURAT MASUK / SURAT KELUAR) -->
+    <div class="modal fade" id="laporanAgendaModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content rounded-4 p-3">
+                <div class="modal-header border-0">
+                    <h5 class="fw-bold text-primary" id="laporanAgendaModalTitle"><i class="fa-solid fa-book me-2"></i>Laporan Buku Agenda</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="laporanAgendaPrintable" class="p-4 bg-white text-dark border rounded">
+                        <div class="text-center border-bottom border-2 border-dark pb-3 mb-3">
+                            <h4 class="fw-bold mb-1">PT HMAPD</h4>
+                            <h5 class="fw-bold text-uppercase mb-1" id="laporanAgendaHeader">LAPORAN BUKU AGENDA SURAT</h5>
+                            <small class="text-muted" id="laporanAgendaSubtitle">Dicetak pada: -</small>
+                        </div>
+                        <div class="table-responsive" style="max-height: none; overflow: visible;">
+                            <table class="table table-bordered table-sm align-middle" id="laporanAgendaTable">
+                                <thead id="laporanAgendaThead"></thead>
+                                <tbody id="laporanAgendaTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="printLaporanAgenda()"><i class="fa-solid fa-print me-1"></i> Cetak</button>
+                    <button type="button" class="btn btn-success" onclick="downloadLaporanAgendaPDF()"><i class="fa-solid fa-download me-1"></i> Unduh PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- MODAL TAMBAH/EDIT KLASIFIKASI -->
+    <div class="modal fade" id="formKlasifikasiModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 p-3">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="modalKlasifikasiTitle">Tambah Klasifikasi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <form id="formKlasifikasi" onsubmit="simpanKlasifikasi(event)">
+                    <div class="modal-body">
+                        <input type="hidden" id="editKlasifikasiIndex" value="">
+                        <div class="mb-3">
+                            <label class="form-label" for="klasifikasiUtamaInput">Kode / Kelompok Klasifikasi (Kolom A)</label>
+                            <textarea class="form-control" id="klasifikasiUtamaInput" rows="2" placeholder="Masukkan kode atau kelompok"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="klasifikasiRincianInput">Rincian Klasifikasi (Kolom B)</label>
+                            <textarea class="form-control" id="klasifikasiRincianInput" rows="3" placeholder="Masukkan uraian klasifikasi"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL TAMBAH/EDIT KONTAK MANAJER -->
+    <div class="modal fade" id="formKontakModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 p-3">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-primary" id="modalKontakTitle">Tambah Tujuan Disposisi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <form id="formKontakManajer" onsubmit="return simpanKontakManajer(event)">
+                    <div class="modal-body">
+                        <input type="hidden" id="editKontakId" value="">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Nama Bagian / Manajer</label>
+                            <input type="text" class="form-control" id="inNamaManajer" placeholder="Contoh: Manajer Keuangan" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Nomor WhatsApp</label>
+                            <input type="text" class="form-control" id="inWaManajer" placeholder="Contoh: 6281234567890" required>
+                            <small class="text-muted">Format internasional tanpa + (diawali 62).</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary bg-gradient-hmapd border-0">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ANTRIAN KIRIM WHATSAPP (FALLBACK JIKA POPUP DIBLOKIR BROWSER) -->
+    <div class="modal fade" id="waDispatchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 p-3">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-success"><i class="fa-brands fa-whatsapp me-2"></i>Kirim Notifikasi WhatsApp</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">Sistem telah menyiapkan pesan untuk <strong>Admin</strong> dan <strong>Manajer tujuan disposisi</strong>. Jika browser memblokir tab otomatis, klik tombol di bawah untuk membuka WhatsApp masing-masing penerima:</p>
+                    <div id="waDispatchList" class="d-grid gap-2"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Selesai</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Bootstrap & JS Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
