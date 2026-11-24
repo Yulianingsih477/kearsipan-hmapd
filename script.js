@@ -4,7 +4,8 @@
    Jika masih kosong, sistem otomatis berjalan dalam Mode Lokal.
    ============================================================ */
 const SUPABASE_URL = 'https://qtynikkiuhaddnpgfnqk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_8XcC4JxbrIngXXWDTMOW2A_7pYEe4co';
+const SUPABASE_ANON_KEY = 'sb_publishable_8XcC4JxbrIngXXWDTMOW2A_7pYEe4co'; // 
+
 let supabaseClient = null;
 
 const DEFAULT_KONTAK_ADMIN = {
@@ -1835,7 +1836,29 @@ function openFileDatabase() {
     return fileDbPromise;
 }
 
+const SUPABASE_STORAGE_BUCKET = 'lampiran-surat';
+
 async function saveUploadedFile(file) {
+    // Jika Supabase aktif, unggah ke Supabase Storage agar bisa dibuka dari HP & perangkat lain
+    if (supabaseClient) {
+        try {
+            const safeBase = (file.name || 'lampiran').replace(/[^a-zA-Z0-9._-]/g, '_');
+            const filePath = `${Date.now()}-${Math.random().toString(16).slice(2)}-${safeBase}`;
+            const { error: uploadError } = await supabaseClient.storage
+                .from(SUPABASE_STORAGE_BUCKET)
+                .upload(filePath, file, { cacheControl: '3600', upsert: false });
+            if (uploadError) throw uploadError;
+            const { data: pubData } = supabaseClient.storage
+                .from(SUPABASE_STORAGE_BUCKET)
+                .getPublicUrl(filePath);
+            if (pubData?.publicUrl) {
+                return pubData.publicUrl;
+            }
+        } catch (err) {
+            console.error('Gagal unggah ke Supabase Storage, beralih ke penyimpanan lokal:', err);
+            alert('File gagal diunggah ke Supabase Storage (pastikan bucket "lampiran-surat" sudah dibuat & Public). Sementara file disimpan di browser lokal saja.');
+        }
+    }
     const db = await openFileDatabase();
     const id = `hmapd-file-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     return new Promise((resolve, reject) => {
@@ -1857,6 +1880,7 @@ async function getStoredFile(id) {
 }
 
 async function deleteStoredFile(id) {
+    if (typeof id === 'string' && /^https?:\/\//i.test(id)) return true;
     const db = await openFileDatabase();
     return new Promise((resolve, reject) => {
         const tx = db.transaction('lampiran', 'readwrite');
@@ -1883,16 +1907,29 @@ async function previewFile(type, id) {
         return;
     }
     try {
+        const safeName = escapeHTML(record.fileName || 'Lampiran');
+        if (typeof record.fileId === 'string' && /^https?:\/\//i.test(record.fileId)) {
+            const url = record.fileId;
+            if (/\.(png|jpe?g|gif|webp|bmp)$/i.test(record.fileName || url)) {
+                target.innerHTML = `<img src="${url}" alt="Preview ${safeName}" class="img-fluid rounded shadow-sm" style="max-height: 65vh;">`;
+            } else if (/\.pdf$/i.test(record.fileName || url)) {
+                target.innerHTML = `<iframe src="${url}" title="${safeName}" width="100%" height="600" class="border rounded"></iframe><div class="mt-2"><a href="${url}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">Buka PDF di Tab Baru</a></div>`;
+            } else {
+                target.innerHTML = `<p class="text-muted">Lampiran: <strong>${safeName}</strong></p><a href="${url}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Buka / Unduh File</a>`;
+            }
+            getModal('previewModal')?.show();
+            return;
+        }
         const file = await getStoredFile(record.fileId);
         if (!file?.blob) throw new Error('Data file tidak ditemukan di IndexedDB.');
         previewObjectUrl = URL.createObjectURL(file.blob);
-        const safeName = escapeHTML(file.name || record.fileName || 'Lampiran');
+        const localSafeName = escapeHTML(file.name || record.fileName || 'Lampiran');
         if ((file.type || '').startsWith('image/')) {
-            target.innerHTML = `<img src="${previewObjectUrl}" alt="Preview ${safeName}" class="img-fluid rounded shadow-sm" style="max-height: 65vh;">`;
+            target.innerHTML = `<img src="${previewObjectUrl}" alt="Preview ${localSafeName}" class="img-fluid rounded shadow-sm" style="max-height: 65vh;">`;
         } else if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '')) {
-            target.innerHTML = `<iframe src="${previewObjectUrl}" title="${safeName}" width="100%" height="600" class="border rounded"></iframe>`;
+            target.innerHTML = `<iframe src="${previewObjectUrl}" title="${localSafeName}" width="100%" height="600" class="border rounded"></iframe>`;
         } else {
-            target.innerHTML = `<p class="text-muted">Lampiran: <strong>${safeName}</strong></p><button class="btn btn-primary btn-sm" type="button" onclick="downloadFile('${type}', ${Number(id)})">Unduh file</button>`;
+            target.innerHTML = `<p class="text-muted">Lampiran: <strong>${localSafeName}</strong></p><button class="btn btn-primary btn-sm" type="button" onclick="downloadFile('${type}', ${Number(id)})">Unduh file</button>`;
         }
         getModal('previewModal')?.show();
     } catch (error) {
@@ -1905,6 +1942,17 @@ async function previewFile(type, id) {
 async function downloadFile(type, id) {
     const record = findFileRecord(type, id);
     if (!record?.fileId) return alert('Belum ada file lampiran untuk surat ini.');
+    if (typeof record.fileId === 'string' && /^https?:\/\//i.test(record.fileId)) {
+        const anchor = document.createElement('a');
+        anchor.href = record.fileId;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener';
+        anchor.download = record.fileName || 'lampiran';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        return;
+    }
     try {
         const file = await getStoredFile(record.fileId);
         if (!file?.blob) throw new Error('File tidak ditemukan.');
