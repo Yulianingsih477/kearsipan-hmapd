@@ -5,7 +5,6 @@
    ============================================================ */
 const SUPABASE_URL = 'https://qtynikkiuhaddnpgfnqk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0eW5pa2tpdWhhZGRucGdmbnFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MDYyMTgsImV4cCI6MjExMTA4MjIxOH0.Pspe4JoLHGVtI0jg__wD7QiRlXSlB_QY_TJA1iGd3_U';
-
 let supabaseClient = null;
 
 const DEFAULT_KONTAK_ADMIN = {
