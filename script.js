@@ -4,7 +4,7 @@
    Jika masih kosong, sistem otomatis berjalan dalam Mode Lokal.
    ============================================================ */
 const SUPABASE_URL = 'https://qtynikkiuhaddnpgfnqk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_8XcC4JxbrIngXXWDTMOW2A_7pYEe4co'; // 
+const SUPABASE_ANON_KEY = 'sb_publishable_8XcC4JxbrIngXXWDTMOW2A_7pYEe4co';
 
 let supabaseClient = null;
 
